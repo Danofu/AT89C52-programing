@@ -1,0 +1,116 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              05/11/2021 12:17:04 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Programs\Keil_v5\C51\BIN\C51.EXE main.c OMF2 OPTIMIZE(8,SPEED) BROWSE DEBUG PRINT(.\Listings\mai
+                    -n.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          // BCD
+   2          #include <REGX52.H>
+   3          #define ESC 0x1B
+   4          #define ADD '+'
+   5          
+   6          unsigned char xdata Left  _at_ 0xFE00;
+   7          unsigned char xdata Right _at_ 0xFD00;
+   8          unsigned char code Coder[] = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F, 0x40 };
+   9          
+  10          volatile unsigned char data iLeft, iRight;
+  11          
+  12          void Send(unsigned char Value)
+  13          {
+  14   1        P3_4 = 1;
+  15   1          TI = 0;
+  16   1            SBUF = Value;
+  17   1            while (TI == 0) {;}
+  18   1          TI = 0;
+  19   1        P3_4 = 0;
+  20   1      }
+  21          
+  22          void ISR_Button(void) interrupt 0
+  23          {
+  24   1        Send(ESC);
+  25   1        // Resets display
+  26   1        iLeft = iRight = 0x0A;
+  27   1      }
+  28          
+  29          void ISR_Timer1(void) interrupt 3
+  30          {
+  31   1        Left  = Coder[iLeft];
+  32   1        Right = Coder[iRight];
+  33   1      }
+  34          
+  35          void ISR_Serial(void) interrupt 4
+  36          {
+  37   1        if (RI == 1)
+  38   1        {
+  39   2          if (SBUF == '0') { iRight = iLeft = 0x00; }
+  40   2          if (SBUF == ADD)
+  41   2          {
+  42   3            if (iRight < 0x09) { iRight++; }
+  43   3            else
+  44   3            {
+  45   4              iRight = 0x00;
+  46   4              if (iLeft < 0x09) { iLeft++; } else { iLeft = 0x00; }
+  47   4            }
+  48   3          }
+  49   2      
+  50   2          RI = 0;
+  51   2        }
+  52   1      }
+  53          
+  54          void Init(void)
+C51 COMPILER V9.60.0.0   MAIN                                                              05/11/2021 12:17:04 PAGE 2   
+
+  55          {
+  56   1        iLeft = iRight = 0x0A;
+  57   1        // Listen to Serial Channel
+  58   1        P3_4 = 0;
+  59   1        // Timer 1
+  60   1        TMOD = TMOD & 0x0F;
+  61   1        TMOD = TMOD | 0x20;
+  62   1        TR1  = 1; // Enable
+  63   1        TH1 = TL1 = 0x00;
+  64   1        // Timer 2
+  65   1        T2CON = 0x30; // Reade/Write
+  66   1        TL2 = RCAP2L = 0xDC;
+  67   1        TH2 = RCAP2H = 0xFF;
+  68   1        TR2 = 1; // Enable
+  69   1        // Serial Channel
+  70   1        SCON = 0x50;
+  71   1        // Interrupt 0 | Int0
+  72   1        IT0 = 1; // zbocze opadajace
+  73   1        EX0 = 1;
+  74   1        // Interrupt 3 | Timer 1
+  75   1        ET1 = 1;
+  76   1        // Interrupt 4 | Serial Rcv./Xmit.
+  77   1        ES  = 1;
+  78   1        // Enable IS
+  79   1        EA  = 1;
+  80   1      }
+  81          
+  82          void main(void)
+  83          {
+  84   1        Init();
+  85   1        for (;;) {;}
+  86   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    225    ----
+   CONSTANT SIZE    =     11    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

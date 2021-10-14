@@ -1,0 +1,65 @@
+AX51 MACRO ASSEMBLER  WAIT1                                                                 05/11/21 13:02:03 PAGE     1
+
+
+MACRO ASSEMBLER AX51 V3.15.3.0
+OBJECT MODULE PLACED IN wait1.OBJ
+ASSEMBLER INVOKED BY: D:\Programs\Keil_v5\C51\BIN\AX51.EXE wait1.a51 SET(SMALL) DEBUG EP
+
+LOC    OBJ             LINE     SOURCE
+
+                          1     NAME wait
+                          2     
+                          3     EXTRN DATA (Var1, Var2, Var3)
+                          4     
+                          5     PUBLIC w1ms, w5mS, w50mS
+                          6     
+------                    7     Wait_ROUTINES SEGMENT CODE
+                          8     
+------                    9     RSEG Wait_ROUTINES
+                         10     
+000000                   11     w1ms:
+000000 750004     E      12           MOV   Var2,#4
+000003 7500E0     E      13           MOV   Var1,#224
+000006 D500FD            14     TT2:  DJNZ  Var1,TT2
+000009 D500FA            15           DJNZ  Var2,TT2
+00000C 22                16           RET
+                         17     
+00000D                   18     w5mS:
+00000D 750014     E      19           MOV  Var2,#20
+000010 750070     E      20           MOV  Var1,#112
+000013 D500FD            21     TT3:  DJNZ Var1,TT3
+000016 D500FA            22           DJNZ Var2,TT3
+000019 22                23           RET
+                         24     
+00001A                   25     w50mS:
+00001A 7500C3     E      26            MOV  Var2,#195
+00001D 750089     E      27            MOV  Var1,#137
+000020 D500FD            28     TT5:   DJNZ Var1,TT5
+000023 D500FA            29            DJNZ Var2,TT5
+000026 22                30            RET
+                         31     END
+AX51 MACRO ASSEMBLER  WAIT1                                                                 05/11/21 13:02:03 PAGE     2
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E                        T Y P E  V A L U E     ATTRIBUTES
+
+TT2 . . . . . . . . . . . . .  C  ADDR  0006H     R   SEG=WAIT_ROUTINES
+TT3 . . . . . . . . . . . . .  C  ADDR  0013H     R   SEG=WAIT_ROUTINES
+TT5 . . . . . . . . . . . . .  C  ADDR  0020H     R   SEG=WAIT_ROUTINES
+VAR1. . . . . . . . . . . . .  D  ADDR  -------       EXT
+VAR2. . . . . . . . . . . . .  D  ADDR  -------       EXT
+VAR3. . . . . . . . . . . . .  D  ADDR  -------       EXT
+W1MS. . . . . . . . . . . . .  C  ADDR  0000H     R   SEG=WAIT_ROUTINES
+W50MS . . . . . . . . . . . .  C  ADDR  001AH     R   SEG=WAIT_ROUTINES
+W5MS. . . . . . . . . . . . .  C  ADDR  000DH     R   SEG=WAIT_ROUTINES
+WAIT. . . . . . . . . . . . .  -- ----  -------       
+WAIT_ROUTINES . . . . . . . .  C  SEG   000027H       REL=UNIT, ALN=BYTE
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S).

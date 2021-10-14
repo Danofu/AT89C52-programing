@@ -1,0 +1,178 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              05/11/2021 13:03:15 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: D:\Programs\Keil_v5\C51\BIN\C51.EXE main.c OMF2 OPTIMIZE(8,SPEED) BROWSE DEBUG TABS(2)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #define ESC 0x1B
+   3          #define DELAY_VALUE 40
+   4          #define LCD_CLEAR 0x01
+   5          
+   6          extern void LcdInit();
+   7          extern void Lcd_Cursor(char row, char column);
+   8          extern void Lcd_DisplayCharacter(unsigned char a_char);
+   9          extern void Lcd_DisplayString(char row, char column, char *string);
+  10          extern void Lcd_DisplayScreen(char *ptr);
+  11          extern void Lcd_WriteControl(unsigned char LcdCommand);
+  12          extern void Lcd_WriteData(unsigned char LcdData);
+  13          extern void AddCustomCharacter(unsigned char Character[], unsigned char CGRAMAddress);
+  14          
+  15          unsigned char data Var1, Var2, Var3;
+  16          unsigned char code WelcomeScreen[] = "Sest. Wbudowane "
+  17                                               "----------------"
+  18                                               " Daniil Borysov "
+  19                                               "----------------";
+  20          unsigned char code InfoScreen[]    = "  Informacja o  "
+  21                                               "    Autorze:    "
+  22                                               "Nr.Albumu: 35623"
+  23                                               "Grupa:      ID-1";
+  24          
+  25          unsigned char code BackSlash[] = { 0x00, 0x10, 0x08, 0x04, 0x02, 0x01, 0x00, 0x00 };
+  26          unsigned char code I[]         = { 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x00 };
+  27          unsigned char code II[]        = { 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x00 };
+  28          unsigned char code III[]       = { 0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x1C, 0x00 };
+  29          unsigned char code IIII[]      = { 0x1E, 0x1E, 0x1E, 0x1E, 0x1E, 0x1E, 0x1E, 0x00 };
+  30          
+  31          unsigned char data Revolutions;
+  32          unsigned char data j, k;
+  33          
+  34          void delay(void)
+  35          {
+  36   1        unsigned char data x, y;
+  37   1        for (x = 0; x < DELAY_VALUE; x++) { for (y = 0; y < DELAY_VALUE; y++) {;} }
+  38   1      }
+  39          
+  40          void ISR_Serial(void) interrupt 4
+  41          {
+  42   1        if(RI == 1)
+  43   1        {
+  44   2          if (SBUF == ESC) { Lcd_DisplayScreen(WelcomeScreen); }
+  45   2          if (SBUF == '1') { Lcd_DisplayScreen(InfoScreen); }
+  46   2          
+  47   2          if (SBUF == '2')
+  48   2          {
+  49   3            Lcd_WriteControl(LCD_CLEAR);
+  50   3            Lcd_WriteControl(0x0C);
+  51   3            
+  52   3            Lcd_DisplayString(1, 0, " Poczekaj       ");
+  53   3            Revolutions = 0x00;
+  54   3            while (Revolutions < 8)
+  55   3            {
+C51 COMPILER V9.60.0.0   MAIN                                                              05/11/2021 13:03:15 PAGE 2   
+
+  56   4              Lcd_DisplayString(1, 0, " Poczekaj.      ");
+  57   4              Lcd_Cursor(1, 13);
+  58   4              Lcd_DisplayCharacter('|');
+  59   4              delay();
+  60   4              
+  61   4              Lcd_DisplayString(1, 0, " Poczekaj..     ");
+  62   4              Lcd_Cursor(1, 13);
+  63   4              Lcd_DisplayCharacter('/');
+  64   4              delay();
+  65   4              
+  66   4              Lcd_DisplayString(1, 0, " Poczekaj...    ");
+  67   4              Lcd_Cursor(1, 13);
+  68   4              Lcd_DisplayCharacter('-');
+  69   4              delay();
+  70   4              
+  71   4              Lcd_DisplayString(1, 0, " Poczekaj       ");
+  72   4                      Lcd_Cursor(1, 13);
+  73   4              Lcd_DisplayCharacter(0x00); // back slash
+  74   4              delay();
+  75   4              
+  76   4              Revolutions++;
+  77   4            }
+  78   3            
+  79   3            Lcd_WriteControl(LCD_CLEAR);
+  80   3            Lcd_WriteControl(0x0C);
+  81   3            Lcd_DisplayString(1, 4, "Gotowe !");
+  82   3            Lcd_Cursor(2, 7);
+  83   3            Lcd_DisplayCharacter(0xBC);
+  84   3          }
+  85   2          
+  86   2          if (SBUF == '3')
+  87   2          {
+  88   3            Lcd_WriteControl(LCD_CLEAR);
+  89   3            Lcd_WriteControl(0x0C);
+  90   3            
+  91   3            Lcd_DisplayString(1, 3, "Odbieram:");
+  92   3            
+  93   3            for (j = 0; j < 16; j++)
+  94   3            {
+  95   4              for (k = 0; k < 5; k++)
+  96   4              {
+  97   5                Lcd_Cursor(2, j);
+  98   5                
+  99   5                if (k != 4) { Lcd_DisplayCharacter(k + 1); }
+ 100   5                else { Lcd_DisplayCharacter(0xFF); }
+ 101   5                
+ 102   5                delay();
+ 103   5              }
+ 104   4            }
+ 105   3            
+ 106   3            Lcd_DisplayString(1, 3, "Odebrano !");
+ 107   3          }
+ 108   2          
+ 109   2          RI = 0;
+ 110   2        }
+ 111   1      }
+ 112          
+ 113          void Init(void)
+ 114          {
+ 115   1        // Listen to Serial Channel
+ 116   1        P3_4 = 0;
+ 117   1        // Timer 2
+C51 COMPILER V9.60.0.0   MAIN                                                              05/11/2021 13:03:15 PAGE 3   
+
+ 118   1        T2CON = 0x20; // Read Only
+ 119   1        TL2 = RCAP2L = 0xDC;
+ 120   1        TH2 = RCAP2H = 0xFF;
+ 121   1        // Serial Channel
+ 122   1        SCON = 0x50;
+ 123   1        // Interrupt 4 | Serial Rcv./Xmit.
+ 124   1        ES  = 1;
+ 125   1        // Enable IS
+ 126   1        EA  = 1;
+ 127   1        
+ 128   1        TR2 = 1; // Enable
+ 129   1      }
+ 130          
+ 131          void InitCustomCharacters(void)
+ 132          {
+ 133   1        AddCustomCharacter(BackSlash, 0x40);
+ 134   1        AddCustomCharacter(I,    0x48);
+ 135   1        AddCustomCharacter(II,   0x50);
+ 136   1        AddCustomCharacter(III,  0x58);
+ 137   1        AddCustomCharacter(IIII, 0x60);
+ 138   1      }
+ 139          
+ 140          void main(void)
+ 141          {
+ 142   1        Init();
+ 143   1        LcdInit();
+ 144   1        InitCustomCharacters();
+ 145   1        Lcd_DisplayScreen(WelcomeScreen);
+ 146   1        while(1) {;}
+ 147   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    532    ----
+   CONSTANT SIZE    =    268    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      6    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

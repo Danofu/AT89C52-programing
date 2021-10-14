@@ -1,0 +1,7 @@
+"main.obj",
+"LCD.obj",
+"wait1.obj" 
+TO "odbiornik" 
+
+CLASSES (CODE (C:0x0-C:0x1FFF), CONST (C:0x0-C:0x1FFF), 
+ECODE (C:0x0-C:0x1FFF), HCONST (C:0x0-C:0x1FFF)) 

@@ -1,0 +1,5 @@
+".\Objects\main.obj" 
+TO ".\Objects\keyboard" 
+
+PRINT(".\Listings\keyboard.map") CLASSES (CODE (C:0x0-C:0x1FFF), CONST (C:0x0-C:0x1FFF), 
+ECODE (C:0x0-C:0x1FFF), HCONST (C:0x0-C:0x1FFF)) 

@@ -1,0 +1,190 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              05/11/2021 12:17:08 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Programs\Keil_v5\C51\BIN\C51.EXE main.c OMF2 OPTIMIZE(8,SPEED) BROWSE DEBUG PRINT(.\Listings\mai
+                    -n.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          // Motor
+   2          #include <REGX52.H>
+   3          #define ESC 0x1B
+   4          #define ADD '+'
+   5          #define IN1 P2_1
+   6          #define IN2 P2_2
+   7          #define IN3 P2_5
+   8          #define IN4 P2_6
+   9          #define EN1 P2_3
+  10          #define EN2 P2_4
+  11          #define MAX 0xFF
+  12          #define REVOLUTIONS 0x0A // 10
+  13          
+  14          volatile unsigned char Slider, Counter, Setting;
+  15          
+  16          void Send(unsigned char Value)
+  17          {
+  18   1        P3_4 = 1;
+  19   1          TI = 0;
+  20   1            SBUF = Value;
+  21   1            while (TI == 0) {;}
+  22   1          TI = 0;
+  23   1        P3_4 = 0;
+  24   1      }
+  25          
+  26          void ISR_Motor(void) interrupt 0
+  27          {
+  28   1        if (Counter < REVOLUTIONS)
+  29   1        {
+  30   2          Counter++;
+  31   2          Send(ADD);
+  32   2        }
+  33   1        else
+  34   1        {
+  35   2          Counter = 0x00;
+  36   2          Setting = 0x00;
+  37   2          EX0 = 0;
+  38   2        }
+  39   1      }
+  40          
+  41          void ISR_Timer1(void) interrupt 3
+  42          {
+  43   1        if (Setting != 0x00)
+  44   1        {
+  45   2          if (Setting != MAX)
+  46   2          {
+  47   3            if (Slider < Setting) { EN1 = EN2 = 1; } else { EN1 = EN2 = 0; }
+  48   3            if (Slider < MAX) { Slider++; } else { Slider = 0x00; }
+  49   3          }
+  50   2          else { EN1 = EN2 = 1; }
+  51   2        }
+  52   1        else { EN1 = EN2 = 0; }
+  53   1      }
+  54          
+C51 COMPILER V9.60.0.0   MAIN                                                              05/11/2021 12:17:08 PAGE 2   
+
+  55          void ISR_Serial(void) interrupt 4
+  56          {
+  57   1        if (RI == 1)
+  58   1        {
+  59   2          // Resets motors
+  60   2          if (SBUF == ESC)
+  61   2          {
+  62   3            EX0 = 0;
+  63   3            Counter = 0x00;
+  64   3            Setting = 0x00;
+  65   3            IN1 = IN3 = 1;
+  66   3            IN2 = IN4 = 0;
+  67   3          }
+  68   2          
+  69   2          // Changing speed of motors
+  70   2          if (SBUF == '4') { Setting = 0x00; } // motors are stopped
+  71   2          if (SBUF == '5') { Setting = 0x33; } // 20% of max speed
+  72   2          if (SBUF == '6') { Setting = 0x66; } // 40% of max speed
+  73   2          if (SBUF == '7') { Setting = 0x99; } // 60% of max speed
+  74   2          if (SBUF == '8') { Setting = 0xCC; } // 80% of max speed
+  75   2          if (SBUF == '9') { Setting = MAX ; } // 100% speed
+  76   2          
+  77   2          // Changing the rotation direct of the top motor
+  78   2          if (SBUF == '*')
+  79   2          {
+  80   3            if (IN1 == 1)
+  81   3            {
+  82   4              IN1 = 0;
+  83   4              IN2 = 1;
+  84   4            }
+  85   3            else
+  86   3            {
+  87   4              IN1 = 1;
+  88   4              IN2 = 0;
+  89   4            }
+  90   3          }
+  91   2          
+  92   2          // Changing the rotation direct of the bottom motor
+  93   2          if (SBUF == '#')
+  94   2          {
+  95   3            if (IN3 == 1)
+  96   3            {
+  97   4              IN3 = 0;
+  98   4              IN4 = 1;
+  99   4            }
+ 100   3            else
+ 101   3            {
+ 102   4              IN3 = 1;
+ 103   4              IN4 = 0;
+ 104   4            }
+ 105   3          }
+ 106   2          
+ 107   2          // Enable Interrupt 0
+ 108   2          // Countdown timer mod
+ 109   2          // Motors stop, when reach #REVOLUTIONS revolutions
+ 110   2          if (SBUF == '0') { EX0 = 1; }
+ 111   2          
+ 112   2          RI = 0;
+ 113   2        }
+ 114   1      }
+ 115          
+ 116          void Init(void)
+C51 COMPILER V9.60.0.0   MAIN                                                              05/11/2021 12:17:08 PAGE 3   
+
+ 117          {
+ 118   1        Counter = 0x00;
+ 119   1        Slider  = 0x00;
+ 120   1        Setting = 0x00;
+ 121   1        // Top Motor
+ 122   1        IN1 = 1; // Turning right
+ 123   1        IN2 = 0;
+ 124   1        EN1 = 0; // Disabled
+ 125   1        // Bottom Motor
+ 126   1        IN3 = 1; // Turning right
+ 127   1        IN4 = 0;
+ 128   1        EN2 = 0; // Disabled
+ 129   1        // Listen to Serial Channel
+ 130   1        P3_4 = 0;
+ 131   1        // Timer 1
+ 132   1        TMOD = TMOD & 0x0F;
+ 133   1        TMOD = TMOD | 0x20;
+ 134   1        TR1  = 1; // Enable
+ 135   1        TH1 = TL1 = 0x00;
+ 136   1        // Timer 2
+ 137   1        T2CON = 0x30; // Reade/Write
+ 138   1        TL2 = RCAP2L = 0xDC;
+ 139   1        TH2 = RCAP2H = 0xFF;
+ 140   1        TR2 = 1; // Enable
+ 141   1        // Serial Channel
+ 142   1        SCON = 0x50;
+ 143   1        // Interrupt 0 | Int0
+ 144   1        IT0 = 1;
+ 145   1        EX0 = 0;
+ 146   1        // Interrupt 3 | Timer 1
+ 147   1        ET1 = 1;
+ 148   1        // Interrupt 4 | Serial Rcv./Xmit.
+ 149   1        ES  = 1;
+ 150   1        // Enable IS
+ 151   1        EA  = 1;
+ 152   1      }
+ 153          
+ 154          void main(void)
+ 155          {
+ 156   1        Init();
+ 157   1        for (;;) {;}
+ 158   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    345    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
